@@ -44,4 +44,10 @@ Method SetValue(part1 As %String, part2 As %String)
     set ..Value = ..Bit2Int(bitValue)
 }
 
+Method SetIntValue(value As %Numeric)
+{
+    set ..Value = value
+    set ..BitValue = $FACTOR(value)
+}
+
 }

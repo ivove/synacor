@@ -4,6 +4,8 @@ Class SYNACOR.VM Extends %RegisteredObject
 
 Property Memory As SYNACOR.Memory;
 
+Property Registry As SYNACOR.Memory;
+
 Property Cursor As %Integer;
 
 Property Running As %Boolean;
@@ -17,6 +19,7 @@ Method Load() As %Status
 {
     Set sc = $$$OK
     set ..Memory = ##class(SYNACOR.Memory).%New()
+    set ..Registry = ##class(SYNACOR.Memory).%New()
     set ..Cursor = 0
     set ..Running = 0
     #DIM filename As %String = "/shared/challenge.bin"  
@@ -39,8 +42,9 @@ Method Run(debug As %Boolean = 0)
     set ..Running = 1
     while ..Running {
         do ..Debug(0,"")
-        set current = ..Memory.Get(..Cursor)
+        set current = ..GetValue(..Cursor)
         if (current.Value = 0) { do ..Halt() }
+        elseif (current.Value = 1) { do ..Set() }
         elseif (current.Value = 6) { do ..Jmp() }
         elseif (current.Value = 7) { do ..Jt() }
         elseif (current.Value = 8) { do ..Jf() }
@@ -56,12 +60,24 @@ Method Halt()
     set ..Running = 0
 }
 
+/// opcode 1 -> set
+Method Set()
+{
+    set ..Cursor = ..Cursor + 1
+    do ..Debug(1,"Set")
+    set regAddr = ..GetValue(..Cursor)
+    set ..Cursor = ..Cursor + 1
+    set value = ..GetValue(..Cursor)
+    do ..Registry.SetInt(regAddr,value.Value)
+    set ..Cursor = ..Cursor + 1
+}
+
 /// opcode 6 -> jump
 Method Jmp()
 {
     set ..Cursor = ..Cursor + 1
     do ..Debug(1,"Jmp")
-    set value = ..Memory.Get(..Cursor)
+    set value = ..GetValue(..Cursor)
     set ..Cursor = value.Value
 }
 
@@ -70,7 +86,7 @@ Method Jt()
 {
     set ..Cursor = ..Cursor + 1
     do ..Debug(1,"Jt")
-    set value = ..Memory.Get(..Cursor)
+    set value = ..GetValue(..Cursor)
     if value.Value { d ..Jmp() }
     else { set ..Cursor = ..Cursor + 1 }
 }
@@ -80,7 +96,7 @@ Method Jf()
 {
     set ..Cursor = ..Cursor + 1
     do ..Debug(1,"Jf")
-    set value = ..Memory.Get(..Cursor)
+    set value = ..GetValue(..Cursor)
     if 'value.Value { d ..Jmp() }
     else { set ..Cursor = ..Cursor + 1 }
 }
@@ -90,7 +106,7 @@ Method Out()
 {
     set ..Cursor = ..Cursor + 1
     do ..Debug(1,"Out")
-    set value = ..Memory.Get(..Cursor)
+    set value = ..GetValue(..Cursor)
     write $CHAR(value.Value)
     set ..Cursor = ..Cursor + 1
 }
@@ -112,10 +128,20 @@ Method Debug(level As %Integer, command As %String) As %Status
         }
         write !
         for i=1:1:level { write *9 }
-        set value = ..Memory.Get(..Cursor)
-        write ..Cursor," : ",command," - ",value.Value," / ",value.BitValue
+        set value = ..GetValue(..Cursor,.loc)
+        write ..Cursor," : ",command," - ",value.Value," (",loc,")",*9
         set ..DebugLines = ..DebugLines + 1
     }
+}
+
+/// Get The value -> raw value or value in registry
+Method GetValue(index As %Integer, ByRef debug As %String) As SYNACOR.Value
+{
+    set debug = "V"
+    set value = ..Memory.Get(index)
+    if value.Value < 32768 { return value }
+    set debug = "R"
+    return ..Registry.Get(value.Value-32768)
 }
 
 }
