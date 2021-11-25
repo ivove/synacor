@@ -35,6 +35,7 @@ Method Run()
     while ..Running {
         set current = ..Memory.Get(..Cursor)
         if (current.Value = 0) { do ..Halt() }
+        elseif (current.Value = 6) { do ..Jmp() }
         elseif (current.Value = 19) { do ..Out() }
         else { do ..Noop() }
     }
@@ -44,6 +45,14 @@ Method Run()
 Method Halt()
 {
     set ..Running = 0
+}
+
+/// opcode 6
+Method Jmp()
+{
+    set ..Cursor = ..Cursor + 1
+    set value = ..Memory.Get(..Cursor)
+    set ..Cursor = value.Value
 }
 
 /// opcode 19
