@@ -67,6 +67,7 @@ Method Set()
     do ..Debug(1,"Set")
     set regAddr = ..GetValue(..Cursor)
     set ..Cursor = ..Cursor + 1
+    do ..Debug(1,"Set")
     set value = ..GetValue(..Cursor)
     do ..Registry.SetInt(regAddr,value.Value)
     set ..Cursor = ..Cursor + 1
@@ -140,7 +141,7 @@ Method GetValue(index As %Integer, ByRef debug As %String) As SYNACOR.Value
     set debug = "V"
     set value = ..Memory.Get(index)
     if value.Value < 32768 { return value }
-    set debug = "R"
+    set debug = "R ("_(value.Value-32768)_")"
     return ..Registry.Get(value.Value-32768)
 }
 
