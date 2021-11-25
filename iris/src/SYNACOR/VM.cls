@@ -36,18 +36,20 @@ Method Run()
         set current = ..Memory.Get(..Cursor)
         if (current.Value = 0) { do ..Halt() }
         elseif (current.Value = 6) { do ..Jmp() }
+        elseif (current.Value = 7) { do ..Jt() }
+        elseif (current.Value = 8) { do ..Jf() }
         elseif (current.Value = 19) { do ..Out() }
         else { do ..Noop() }
     }
 }
 
-/// opcode 0
+/// opcode 0 -> Halt = stop execution
 Method Halt()
 {
     set ..Running = 0
 }
 
-/// opcode 6
+/// opcode 6 -> jump
 Method Jmp()
 {
     set ..Cursor = ..Cursor + 1
@@ -55,7 +57,25 @@ Method Jmp()
     set ..Cursor = value.Value
 }
 
-/// opcode 19
+/// opcode 7 -> Jump if true
+Method Jt()
+{
+    set ..Cursor = ..Cursor + 1
+    set value = ..Memory.Get(..Cursor)
+    if value { d ..Jmp() }
+    else { set ..Cursor = ..Cursor + 1 }
+}
+
+/// opcode 8 -> Jump if false
+Method Jf()
+{
+    set ..Cursor = ..Cursor + 1
+    set value = ..Memory.Get(..Cursor)
+    if 'value { d ..Jmp() }
+    else { set ..Cursor = ..Cursor + 1 }
+}
+
+/// opcode 19 -> Write to console
 Method Out()
 {
     set ..Cursor = ..Cursor + 1
@@ -64,7 +84,7 @@ Method Out()
     set ..Cursor = ..Cursor + 1
 }
 
-/// opcode 21
+/// opcode 21 -> No opperation
 Method Noop()
 {
     set ..Cursor = ..Cursor + 1
