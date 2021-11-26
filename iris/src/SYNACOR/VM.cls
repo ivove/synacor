@@ -45,6 +45,7 @@ Method Run(debug As %Boolean = 0)
         Set current = ..GetValue(..Cursor)
         If (current.Value = 0) { Do ..Halt() }
         ElseIf (current.Value = 1) { Do ..Set() }
+        ElseIf (current.Value = 4) { Do ..Eq() }
         ElseIf (current.Value = 6) { Do ..Jmp() }
         ElseIf (current.Value = 7) { Do ..Jt() }
         ElseIf (current.Value = 8) { Do ..Jf() }
@@ -55,14 +56,14 @@ Method Run(debug As %Boolean = 0)
     }
 }
 
-/// opcode 0 -> Halt = stop execution
+/// opcode 0 -> stop execution and terminate the program
 Method Halt()
 {
     Do ..Debug(1,"Halt")
     Set ..Running = 0
 }
 
-/// opcode 1 -> set
+/// opcode 1 a b -> set register <a> to the value of <b> 
 Method Set()
 {
     Set ..Cursor = ..Cursor + 1
@@ -70,12 +71,32 @@ Method Set()
     Set addr = ..Memory.Get(..Cursor)
     Set ..Cursor = ..Cursor + 1
     Do ..Debug(1,"Set")
-    Set value = ..Memory.Get(..Cursor)
+    Set value = ..GetValue(..Cursor)
     Do ..MemSet(addr.Value,value.Value)
     Set ..Cursor = ..Cursor + 1
 }
 
-/// opcode 6 -> jump
+/// opcode 4 a b c-> set <a> to 1 if <b> is equal to <c>; set it to 0 otherwise
+Method Eq()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Eq")
+    Set addr = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Eq")
+    Set value1 = ..GetValue(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Eq")
+    Set value2 = ..GetValue(..Cursor)
+    If (value1.Value = value2.Value) {
+        Do ..MemSet(addr.Value,1)
+    } Else {
+        Do ..MemSet(addr.Value,0)
+    }
+    Set ..Cursor = ..Cursor + 1
+}
+
+/// opcode 6 a -> jump to <a>
 Method Jmp()
 {
     Set ..Cursor = ..Cursor + 1
@@ -84,7 +105,7 @@ Method Jmp()
     Set ..Cursor = value.Value
 }
 
-/// opcode 7 -> Jump if true
+/// opcode 7 a b -> if <a> is nonzero, jump to <b>
 Method Jt()
 {
     Set ..Cursor = ..Cursor + 1
@@ -94,7 +115,7 @@ Method Jt()
     Else { Set ..Cursor = ..Cursor + 1 }
 }
 
-/// opcode 8 -> Jump if false
+/// opcode 8 a b -> if <a> is zero, jump to <b>
 Method Jf()
 {
     Set ..Cursor = ..Cursor + 1
@@ -104,7 +125,7 @@ Method Jf()
     Else { Set ..Cursor = ..Cursor + 1 }
 }
 
-/// Opcode 9 -> add values and set
+/// Opcode 9 a b c -> assign into <a> the sum of <b> and <c> (modulo 32768)
 Method Add()
 {
     Set ..Cursor = ..Cursor + 1
@@ -112,16 +133,16 @@ Method Add()
     Set addr = ..Memory.Get(..Cursor)
     Set ..Cursor = ..Cursor + 1
     Do ..Debug(1,"Add")
-    Set value1 = ..Memory.Get(..Cursor)
+    Set value1 = ..GetValue(..Cursor)
     Set ..Cursor = ..Cursor + 1
     Do ..Debug(1,"Add")
-    Set value2 = ..Memory.Get(..Cursor)
+    Set value2 = ..GetValue(..Cursor)
     Set sum = (value1.Value + value2.Value) # 32768
     Do ..MemSet(addr.Value,sum)
     Set ..Cursor = ..Cursor + 1
 }
 
-/// opcode 19 -> Write to console
+/// opcode 19 a -> write the character represented by ascii code <a> to the terminal
 Method Out()
 {
     Set ..Cursor = ..Cursor + 1
