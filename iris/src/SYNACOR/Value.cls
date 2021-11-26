@@ -11,43 +11,44 @@ Property BitValue As %String;
 /// Parse a value
 ClassMethod Parse(part1 As %String, part2 As %String) As SYNACOR.Value
 {
-    set val = ##class(SYNACOR.Value).%New()
-    do val.SetValue(part1,part2)
-    return val
+    Set val = ##class(SYNACOR.Value).%New()
+    Do val.SetValue(part1,part2)
+    Return val
 }
 
 /// convert int to bitstring
 ClassMethod Int2Bit(value As %Numeric, length As %Integer = 8) As %String
 {
     Set result = ""
-    set factor = $FACTOR(value)
-    for i=1:1:length { set result = result_$BIT(factor,i) }
+    Set factor = $FACTOR(value)
+    For i=1:1:length { Set result = result_$BIT(factor,i) }
     Return result
 }
 
 ClassMethod Bit2Int(value As %String) As %Numeric
 {
-    set result = 0
-    for i=1:1:$BITCOUNT(value) { set result = result + ($BIT(value,i)*(2**(i-1))) }
-    return result
+    Set result = 0
+    For i=1:1:$BITCOUNT(value) { Set result = result + ($BIT(value,i)*(2**(i-1))) }
+    Return result
 }
 
 Method SetValue(part1 As %String, part2 As %String)
 {
-    set ..RawValue = part2_part1
-    for i=1:1:16 { set $BIT(bitValue,i) = 0 }
-    set bPart1 = ..Int2Bit($ASCII(part1))
-    for i=1:1:8 { set $BIT(bitValue,i) = $EXTRACT(bPart1,i)}
-    set bPart2 = ..Int2Bit($ASCII(part2))
-    for i=1:1:8 { set $BIT(bitValue,i+8) = $EXTRACT(bPart2,i)}
-    set ..BitValue = bitValue
-    set ..Value = ..Bit2Int(bitValue)
+    Set ..RawValue = part2_part1
+    Set bitValue = ""
+    For i=1:1:16 { Set $BIT(bitValue,i) = 0 }
+    Set bPart1 = ..Int2Bit($ASCII(part1))
+    For i=1:1:8 { Set $BIT(bitValue,i) = $EXTRACT(bPart1,i)}
+    Set bPart2 = ..Int2Bit($ASCII(part2))
+    For i=1:1:8 { Set $BIT(bitValue,i+8) = $EXTRACT(bPart2,i)}
+    Set ..BitValue = bitValue
+    Set ..Value = ..Bit2Int(bitValue)
 }
 
 Method SetIntValue(value As %Numeric)
 {
-    set ..Value = value
-    set ..BitValue = $FACTOR(value)
+    Set ..Value = value
+    Set ..BitValue = $FACTOR(value)
 }
 
 }

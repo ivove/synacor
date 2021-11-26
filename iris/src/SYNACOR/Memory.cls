@@ -6,24 +6,24 @@ Property Values As array Of SYNACOR.Value;
 
 Method Set(index As %Integer, value As SYNACOR.Value)
 {
-    do ..Values.SetAt(value,index)
+    Do ..Values.SetAt(value,index)
 }
 
 Method SetInt(index As %Integer, value As %Numeric)
 {
-    set memVal = ##class(SYNACOR.Value).%New()
-    do memVal.SetIntValue(value)
-    do ..Set(index,memVal)
+    Set memVal = ##class(SYNACOR.Value).%New()
+    Do memVal.SetIntValue(value)
+    Do ..Set(index,memVal)
 }
 
 Method Get(index As %Integer) As SYNACOR.Value
 {
-    set value = ..Values.GetAt(index)
-    if (value = $$$NULLOREF) {
-        set value = ##class(SYNACOR.Value).%New()
-        do value.SetIntValue(0)
+    Set value = ..Values.GetAt(index)
+    If (value = $$$NULLOREF) {
+        Set value = ##class(SYNACOR.Value).%New()
+        Do value.SetIntValue(0)
     }
-    return value
+    Return value
 }
 
 }

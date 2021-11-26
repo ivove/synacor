@@ -18,38 +18,39 @@ Property DebugLines As %Integer;
 Method Load() As %Status
 {
     Set sc = $$$OK
-    set ..Memory = ##class(SYNACOR.Memory).%New()
-    set ..Registry = ##class(SYNACOR.Memory).%New()
-    set ..Cursor = 0
-    set ..Running = 0
+    Set ..Memory = ##class(SYNACOR.Memory).%New()
+    Set ..Registry = ##class(SYNACOR.Memory).%New()
+    Set ..Cursor = 0
+    Set ..Running = 0
     #DIM filename As %String = "/shared/challenge.bin"  
     Set stream=##class(%Stream.FileBinary).%New()
     Set sc=stream.LinkToFile(filename)
-    set position = 0
+    Set position = 0
     While 'stream.AtEnd {
-        set char1 = stream.Read(1)
-        set char2 = stream.Read(1)
-        set value = ##class(SYNACOR.Value).Parse(char1,char2)
-        do ..Memory.Set(position,value)
-        set position = position + 1
+        Set char1 = stream.Read(1)
+        Set char2 = stream.Read(1)
+        Set value = ##class(SYNACOR.Value).Parse(char1,char2)
+        Do ..Memory.Set(position,value)
+        Set position = position + 1
     } 
     Return sc
 }
 
 Method Run(debug As %Boolean = 0)
 {
-    set ..Debug = debug
-    set ..Running = 1
-    while ..Running {
-        do ..Debug(0,"")
-        set current = ..GetValue(..Cursor)
-        if (current.Value = 0) { do ..Halt() }
-        elseif (current.Value = 1) { do ..Set() }
-        elseif (current.Value = 6) { do ..Jmp() }
-        elseif (current.Value = 7) { do ..Jt() }
-        elseif (current.Value = 8) { do ..Jf() }
-        elseif (current.Value = 19) { do ..Out() }
-        else { do ..Noop() }
+    Set ..Debug = debug
+    Set ..Running = 1
+    While ..Running {
+        Do ..Debug(0,"")
+        Set current = ..GetValue(..Cursor)
+        If (current.Value = 0) { Do ..Halt() }
+        ElseIf (current.Value = 1) { Do ..Set() }
+        ElseIf (current.Value = 6) { Do ..Jmp() }
+        ElseIf (current.Value = 7) { Do ..Jt() }
+        ElseIf (current.Value = 8) { Do ..Jf() }
+        ElseIf (current.Value = 9) { Do ..Add() }
+        ElseIf (current.Value = 19) { Do ..Out() }
+        Else { Do ..Noop() }
         //add
     }
 }
@@ -57,98 +58,120 @@ Method Run(debug As %Boolean = 0)
 /// opcode 0 -> Halt = stop execution
 Method Halt()
 {
-    do ..Debug(1,"Halt")
-    set ..Running = 0
+    Do ..Debug(1,"Halt")
+    Set ..Running = 0
 }
 
 /// opcode 1 -> set
 Method Set()
 {
-    set ..Cursor = ..Cursor + 1
-    do ..Debug(1,"Set")
-    set addr = ..Memory.Get(..Cursor)
-    set ..Cursor = ..Cursor + 1
-    do ..Debug(1,"Set")
-    set value = ..Memory.Get(..Cursor)
-    if addr.Value < 32768 {
-        do ..Memory.SetInt(addr.Value,value.Value)
-    }
-    else {
-        do ..Registry.SetInt(addr.Value-32768,value.Value)
-    }
-    set ..Cursor = ..Cursor + 1
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Set")
+    Set addr = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Set")
+    Set value = ..Memory.Get(..Cursor)
+    Do ..MemSet(addr.Value,value.Value)
+    Set ..Cursor = ..Cursor + 1
 }
 
 /// opcode 6 -> jump
 Method Jmp()
 {
-    set ..Cursor = ..Cursor + 1
-    do ..Debug(1,"Jmp")
-    set value = ..GetValue(..Cursor)
-    set ..Cursor = value.Value
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Jmp")
+    Set value = ..GetValue(..Cursor)
+    Set ..Cursor = value.Value
 }
 
 /// opcode 7 -> Jump if true
 Method Jt()
 {
-    set ..Cursor = ..Cursor + 1
-    do ..Debug(1,"Jt")
-    set value = ..GetValue(..Cursor)
-    if value.Value { d ..Jmp() }
-    else { set ..Cursor = ..Cursor + 1 }
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Jt")
+    Set value = ..GetValue(..Cursor)
+    If value.Value { Do ..Jmp() }
+    Else { Set ..Cursor = ..Cursor + 1 }
 }
 
 /// opcode 8 -> Jump if false
 Method Jf()
 {
-    set ..Cursor = ..Cursor + 1
-    do ..Debug(1,"Jf")
-    set value = ..GetValue(..Cursor)
-    if 'value.Value { d ..Jmp() }
-    else { set ..Cursor = ..Cursor + 1 }
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Jf")
+    Set value = ..GetValue(..Cursor)
+    If 'value.Value { Do ..Jmp() }
+    Else { Set ..Cursor = ..Cursor + 1 }
+}
+
+/// Opcode 9 -> add values and set
+Method Add()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Add")
+    Set addr = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Add")
+    Set value1 = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Add")
+    Set value2 = ..Memory.Get(..Cursor)
+    Set sum = (value1.Value + value2.Value) # 32768
+    Do ..MemSet(addr.Value,sum)
+    Set ..Cursor = ..Cursor + 1
 }
 
 /// opcode 19 -> Write to console
 Method Out()
 {
-    set ..Cursor = ..Cursor + 1
-    do ..Debug(1,"Out")
-    set value = ..GetValue(..Cursor)
-    write $CHAR(value.Value)
-    set ..Cursor = ..Cursor + 1
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Out")
+    Set value = ..GetValue(..Cursor)
+    Write $CHAR(value.Value)
+    Set ..Cursor = ..Cursor + 1
 }
 
 /// opcode 21 -> No opperation
 Method Noop()
 {
-    do ..Debug(1,"Noop")
-    set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Noop")
+    Set ..Cursor = ..Cursor + 1
 }
 
 /// Debugging
 Method Debug(level As %Integer, command As %String) As %Status
 {
-    if ..Debug {
-        if ..DebugLines = 10 { 
-            read xx
-            set ..DebugLines = 0
+    If ..Debug {
+        If ..DebugLines = 10 { 
+            Read xx
+            Set ..DebugLines = 0
         }
-        write !
-        for i=1:1:level { write *9 }
-        set value = ..GetValue(..Cursor,.loc)
-        write ..Cursor," : ",command," - ",value.Value," (",loc,")",*9
-        set ..DebugLines = ..DebugLines + 1
+        Write !
+        For i=1:1:level { Write *9 }
+        Set value = ..GetValue(..Cursor,.loc)
+        Write ..Cursor," : ",command," - ",value.Value," (",loc,")",*9
+        Set ..DebugLines = ..DebugLines + 1
     }
 }
 
 /// Get The value -> raw value or value in registry
 Method GetValue(index As %Integer, ByRef debug As %String) As SYNACOR.Value
 {
-    set debug = "V"
-    set value = ..Memory.Get(index)
-    if value.Value < 32768 { return value }
-    set debug = "R ("_(value.Value-32768)_")"
-    return ..Registry.Get(value.Value-32768)
+    Set debug = "V"
+    Set value = ..Memory.Get(index)
+    If value.Value < 32768 { Return value }
+    Set debug = "R ("_(value.Value-32768)_")"
+    Return ..Registry.Get(value.Value-32768)
+}
+
+Method MemSet(index As %Integer, value As %Numeric)
+{
+    If index < 32768 {
+        Do ..Memory.SetInt(index,value)
+    }
+    Else {
+        Do ..Registry.SetInt(index-32768,value)
+    }
 }
 
 }
