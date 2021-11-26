@@ -65,12 +65,16 @@ Method Set()
 {
     set ..Cursor = ..Cursor + 1
     do ..Debug(1,"Set")
-    set regAddr = ..GetValue(..Cursor)
+    set addr = ..Memory.Get(..Cursor)
     set ..Cursor = ..Cursor + 1
     do ..Debug(1,"Set")
-    set value = ..GetValue(..Cursor)
-    w !,regAddr.Value,*9,value.Value
-    do ..Registry.SetInt(regAddr.Value,value.Value)
+    set value = ..Memory.Get(..Cursor)
+    if addr.Value < 32768 {
+        do ..Memory.SetInt(addr.Value,value.Value)
+    }
+    else {
+        do ..Registry.SetInt(addr.Value-32768,value.Value)
+    }
     set ..Cursor = ..Cursor + 1
 }
 
