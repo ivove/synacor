@@ -69,7 +69,8 @@ Method Set()
     set ..Cursor = ..Cursor + 1
     do ..Debug(1,"Set")
     set value = ..GetValue(..Cursor)
-    do ..Registry.SetInt(regAddr,value.Value)
+    w !,regAddr.Value,*9,value.Value
+    do ..Registry.SetInt(regAddr.Value,value.Value)
     set ..Cursor = ..Cursor + 1
 }
 
