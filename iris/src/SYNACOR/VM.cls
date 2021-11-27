@@ -6,6 +6,8 @@ Property Memory As SYNACOR.Memory;
 
 Property Registry As SYNACOR.Memory;
 
+Property Stack As SYNACOR.Stack;
+
 Property Cursor As %Integer;
 
 Property Running As %Boolean;
@@ -20,6 +22,7 @@ Method Load() As %Status
     Set sc = $$$OK
     Set ..Memory = ##class(SYNACOR.Memory).%New()
     Set ..Registry = ##class(SYNACOR.Memory).%New()
+    Set ..Stack = ##class(SYNACOR.Stack).%New()
     Set ..Cursor = 0
     Set ..Running = 0
     #DIM filename As %String = "/shared/challenge.bin"  
@@ -45,6 +48,8 @@ Method Run(debug As %Boolean = 0)
         Set current = ..GetValue(..Cursor)
         If (current.Value = 0) { Do ..Halt() }
         ElseIf (current.Value = 1) { Do ..Set() }
+        ElseIf (current.Value = 2) { Do ..Push() }
+        ElseIf (current.Value = 3) { Do ..Pop() }
         ElseIf (current.Value = 4) { Do ..Eq() }
         ElseIf (current.Value = 6) { Do ..Jmp() }
         ElseIf (current.Value = 7) { Do ..Jt() }
@@ -72,6 +77,27 @@ Method Set()
     Set ..Cursor = ..Cursor + 1
     Do ..Debug(1,"Set")
     Set value = ..GetValue(..Cursor)
+    Do ..MemSet(addr.Value,value.Value)
+    Set ..Cursor = ..Cursor + 1
+}
+
+/// Opcode 2 a -> push <a> onto the stack
+Method Push()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Push")
+    Set value = ..GetValue(..Cursor)
+    Do ..Stack.Push(value)
+    Set ..Cursor = ..Cursor + 1
+}
+
+/// Opcode 3 a -> remove the top element from the stack and write it into <a>; empty stack = error
+Method Pop()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Pop")
+    Set value = ..Stack.Pop()
+    Set addr = ..Memory.Get(..Cursor)
     Do ..MemSet(addr.Value,value.Value)
     Set ..Cursor = ..Cursor + 1
 }
