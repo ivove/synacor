@@ -51,6 +51,7 @@ Method Run(debug As %Boolean = 0)
         ElseIf (current.Value = 2) { Do ..Push() }
         ElseIf (current.Value = 3) { Do ..Pop() }
         ElseIf (current.Value = 4) { Do ..Eq() }
+        ElseIf (current.Value = 5) { Do ..Gt() }
         ElseIf (current.Value = 6) { Do ..Jmp() }
         ElseIf (current.Value = 7) { Do ..Jt() }
         ElseIf (current.Value = 8) { Do ..Jf() }
@@ -115,6 +116,26 @@ Method Eq()
     Do ..Debug(1,"Eq")
     Set value2 = ..GetValue(..Cursor)
     If (value1.Value = value2.Value) {
+        Do ..MemSet(addr.Value,1)
+    } Else {
+        Do ..MemSet(addr.Value,0)
+    }
+    Set ..Cursor = ..Cursor + 1
+}
+
+/// Opcode 5 a b c -> set <a> to 1 if <b> is greater than <c>; set it to 0 otherwise
+Method Gt()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Gt")
+    Set addr = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Gt")
+    Set value1 = ..GetValue(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Gt")
+    Set value2 = ..GetValue(..Cursor)
+    If (value1.Value > value2.Value ) {
         Do ..MemSet(addr.Value,1)
     } Else {
         Do ..MemSet(addr.Value,0)
