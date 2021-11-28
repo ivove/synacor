@@ -58,6 +58,7 @@ Method Run(debug As %Boolean = 0)
         ElseIf (current.Value = 9) { Do ..Add() }
         ElseIf (current.Value = 12) { Do ..And() }
         ElseIf (current.Value = 13) { Do ..Or() }
+        ElseIf (current.Value = 17) { Do ..Call() }
         ElseIf (current.Value = 19) { Do ..Out() }
         Else { Do ..Noop() }
         //add
@@ -223,6 +224,16 @@ Method Or()
     set and = $BITLOGIC(value1.BitValue|value2.BitValue)
     do ..MemSetBit(addr.Value,and)
     set ..Cursor = ..Cursor + 1
+}
+
+/// Opcode 17 a -> write the address of the next instruction to the stack and jump to <a>
+Method Call()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Call")
+    Set addr = ..Memory.Get(..Cursor)
+    do ..Stack.Push(..Cursor + 1)
+    set ..Cursor = addr.Value
 }
 
 /// opcode 19 a -> write the character represented by ascii code <a> to the terminal
