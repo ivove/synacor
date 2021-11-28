@@ -232,7 +232,9 @@ Method Call()
     Set ..Cursor = ..Cursor + 1
     Do ..Debug(1,"Call")
     Set addr = ..Memory.Get(..Cursor)
-    do ..Stack.Push(..Cursor + 1)
+    set value = ##class(SYNACOR.Value).%New()
+    do value.SetIntValue(..Cursor+1)
+    do ..Stack.Push(value)
     set ..Cursor = addr.Value
 }
 
