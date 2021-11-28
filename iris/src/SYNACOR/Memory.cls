@@ -16,6 +16,13 @@ Method SetInt(index As %Integer, value As %Numeric)
     Do ..Set(index,memVal)
 }
 
+Method SetBit(index As %Integer, value As %String)
+{
+    Set memVal = ##class(SYNACOR.Value).%New()
+    Do memVal.SetBitValue(value)
+    Do ..Set(index,memVal)
+}
+
 Method Get(index As %Integer) As SYNACOR.Value
 {
     Set value = ..Values.GetAt(index)

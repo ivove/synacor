@@ -56,6 +56,8 @@ Method Run(debug As %Boolean = 0)
         ElseIf (current.Value = 7) { Do ..Jt() }
         ElseIf (current.Value = 8) { Do ..Jf() }
         ElseIf (current.Value = 9) { Do ..Add() }
+        ElseIf (current.Value = 12) { Do ..And() }
+        ElseIf (current.Value = 13) { Do ..Or() }
         ElseIf (current.Value = 19) { Do ..Out() }
         Else { Do ..Noop() }
         //add
@@ -189,6 +191,40 @@ Method Add()
     Set ..Cursor = ..Cursor + 1
 }
 
+/// opcode 12 a b c -> stores into <a> the bitwise and of <b> and <c>
+Method And()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"And")
+    Set addr = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"And")
+    Set value1 = ..GetValue(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"And")
+    Set value2 = ..GetValue(..Cursor)
+    set and = $BITLOGIC(value1.BitValue&value2.BitValue)
+    do ..MemSetBit(addr.Value,and)
+    set ..Cursor = ..Cursor + 1
+}
+
+/// Opcode 13 a b c -> stores into <a> the bitwise or of <b> and <c>
+Method Or()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Or")
+    Set addr = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Or")
+    Set value1 = ..GetValue(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Or")
+    Set value2 = ..GetValue(..Cursor)
+    set and = $BITLOGIC(value1.BitValue|value2.BitValue)
+    do ..MemSetBit(addr.Value,and)
+    set ..Cursor = ..Cursor + 1
+}
+
 /// opcode 19 a -> write the character represented by ascii code <a> to the terminal
 Method Out()
 {
@@ -239,6 +275,16 @@ Method MemSet(index As %Integer, value As %Numeric)
     }
     Else {
         Do ..Registry.SetInt(index-32768,value)
+    }
+}
+
+Method MemSetBit(index As %Integer, value As %String)
+{
+    If index < 32768 {
+        Do ..Memory.setBit(index,value)
+    }
+    Else {
+        Do ..Registry.SetBit(index-32768,value)
     }
 }
 
