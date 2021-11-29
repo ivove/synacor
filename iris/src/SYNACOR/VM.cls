@@ -58,6 +58,7 @@ Method Run(debug As %Boolean = 0)
         ElseIf (current.Value = 9) { Do ..Add() }
         ElseIf (current.Value = 12) { Do ..And() }
         ElseIf (current.Value = 13) { Do ..Or() }
+        ElseIf (current.Value = 14) { Do ..Not() }
         ElseIf (current.Value = 17) { Do ..Call() }
         ElseIf (current.Value = 19) { Do ..Out() }
         Else { Do ..Noop() }
@@ -223,6 +224,20 @@ Method Or()
     Set value2 = ..GetValue(..Cursor)
     set and = $BITLOGIC(value1.BitValue|value2.BitValue)
     do ..MemSetBit(addr.Value,and)
+    set ..Cursor = ..Cursor + 1
+}
+
+/// Opcode 14 a b -> stores 15-bit bitwise inverse of <b> in <a>
+Method Not()
+{
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Not")
+    Set addr = ..Memory.Get(..Cursor)
+    Set ..Cursor = ..Cursor + 1
+    Do ..Debug(1,"Not")
+    Set value1 = ..GetValue(..Cursor)
+    set not = $BITLOGIC(~value1.BitValue,15)
+    do ..MemSetBit(addr.Value,not)
     set ..Cursor = ..Cursor + 1
 }
 
